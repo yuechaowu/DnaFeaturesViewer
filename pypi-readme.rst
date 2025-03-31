@@ -20,19 +20,16 @@ Infos
 
   pip install dna_features_viewer
 
-**Web documentation:**
+**Web documentation:** `<https://edinburgh-genome-foundry.github.io/DnaFeaturesViewer/>`_
 
-`<https://edinburgh-genome-foundry.github.io/DnaFeaturesViewer/>`_
+**Github Page:** `<https://github.com/Edinburgh-Genome-Foundry/DnaFeaturesViewer>`_
 
-**Github Page**
+**Live demo:** `<http://cuba.genomefoundry.org/plot-sequence-features>`_
 
-`<https://github.com/Edinburgh-Genome-Foundry/DnaFeaturesViewer>`_
+**License:** MIT
 
-**Live demo**
+2016 Edinburgh Genome Foundry, University of Edinburgh
 
-`<http://cuba.genomefoundry.org/plot-sequence-features>`_
-
-**License:** MIT, Copyright Edinburgh Genome Foundry
 
 More biology software
 ---------------------
