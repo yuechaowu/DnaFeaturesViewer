@@ -13,23 +13,19 @@ class BiopythonTranslator(BiopythonTranslatorBase):
 
     Attributes
     ----------
-
     default_feature_color = "#7245dc"
     graphic_record_parameters
-      Dictionary containing keyword arguments that will be passed to the
-      (Circular)GraphicRecord constructor.
-
+        Dictionary containing keyword arguments that will be passed to the
+        (Circular)GraphicRecord constructor.
     ignored_features_types
-      A list or tuple of strings indicating all the feature types that should
-      always be ignored (i.e. not included in the graphic record) by the
-      translator.
-
+        A list or tuple of strings indicating all the feature types that should
+        always be ignored (i.e. not included in the graphic record) by the translator.
     label_fields
-      This list of strings provides the order in which the different
-      attributes of a Genbank feature will be considered, when automatically
-      determining the feature label. For instance if the list is
-      ["label", "source", "locus_tag"] and a feature has no label but has a
-      "source", the "source" will be displayed in the plots.
+        This list of strings provides the order in which the different
+        attributes of a Genbank feature will be considered, when automatically
+        determining the feature label. For instance if the list is
+        ["label", "source", "locus_tag"] and a feature has no label but has a
+        "source", the "source" will be displayed in the plots.
 
     Parameters
     ----------

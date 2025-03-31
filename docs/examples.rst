@@ -2,7 +2,7 @@ Examples
 ========
 
 Define a graphic record "by hand"
-----------------------------------
+---------------------------------
 
 .. literalinclude:: ../examples/graphic_record_defined_by_hand.py
 
@@ -28,7 +28,7 @@ Load a graphic record from Genbank
     :align: center
 
 Plot sequence with GC content plot
-------------------------------------
+----------------------------------
 
 .. literalinclude:: ../examples/with_gc_plot.py
 
@@ -36,7 +36,7 @@ Plot sequence with GC content plot
     :align: center
 
 Sequence nucleotides and translation
--------------------------------------
+------------------------------------
 
 .. literalinclude:: ../examples/sequence_and_translation.py
 
@@ -44,7 +44,7 @@ Sequence nucleotides and translation
     :align: center
 
 Example with GIF
-------------------
+----------------
 
 .. literalinclude:: ../examples/example_with_gif.py
 

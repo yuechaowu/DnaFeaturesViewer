@@ -274,35 +274,30 @@ class MatplotlibPlottableMixin(MultilinePlottableMixin, SequenceAndTranslationMi
         max_label_length,
         indicate_strand_in_label=False,
     ):
-        """ "Place an annotation in the figure. Decide on inline vs. outline.
+        """Place an annotation in the figure.
+
+        Decide on inline vs. outline.
 
         Parameters
         ----------
-
         feature
-          Graphic feature to place in the figure.
-
+            Graphic feature to place in the figure.
         ax
-          Matplotlib ax in which to place the feature.
-
+            Matplotlib ax in which to place the feature.
         level
-          level at which the annotation should be placed.
-
+            level at which the annotation should be placed.
         annotate_inline
-          If true, the plotter will attempt to annotate inline, and fall back
-          to outline annotation.
-
+            If true, the plotter will attempt to annotate inline, and fall back
+            to outline annotation.
         max_line_length
-          If an annotation label's length exceeds this number the label will
-          wrap over several lines.
-
+            If an annotation label's length exceeds this number the label will
+            wrap over several lines.
         max_label_length,
-          If an annotation label's length exceeds this number the label will
-          be cut with an ellipsis (...).
-
+            If an annotation label's length exceeds this number the label will
+            be cut with an ellipsis (...).
         indicate_strand_in_label
-          If True, then the label will be represented as "<= label" or
-          "label =>" with an arrow representing the strand.
+            If True, then the label will be represented as "<= label" or
+            "label =>" with an arrow representing the strand.
         """
         padding = self.compute_padding(ax)
         if annotate_inline:

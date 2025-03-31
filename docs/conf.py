@@ -13,6 +13,11 @@
 
 from dna_features_viewer import __version__
 
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath("../dna_features_viewer/"))
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -27,25 +32,28 @@ from dna_features_viewer import __version__
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
-    "numpydoc",
+    # "numpydoc",
     "sphinx.ext.autosummary",
 ]
+napoleon_numpy_docstring = True
 numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
-html_theme = "press"
+html_theme = "sphinx_rtd_theme"
+# html_theme = "press"
 templates_path = ["_templates"]
 pygments_style = "monokai"
-html_theme_options = {
-    "external_links": [
-        (
-            "Github",
-            "https://github.com/Edinburgh-Genome-Foundry/DnaFeaturesViewer",
-        )
-    ]
-}
+# html_theme_options = {
+#     "external_links": [
+#         (
+#             "Github",
+#             "https://github.com/Edinburgh-Genome-Foundry/DnaFeaturesViewer",
+#         )
+#     ]
+# }
 # The suffix of source filenames.
 source_suffix = [".rst"]
 # The encoding of source files.
@@ -55,8 +63,8 @@ source_suffix = [".rst"]
 master_doc = "index"
 
 # General information about the project.
-project = u"DnaFeaturesViewer"
-copyright = u"2016, Edinburgh Genome Foundry"
+project = "DnaFeaturesViewer"
+copyright = "2016 Edinburgh Genome Foundry, University of Edinburgh"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -199,8 +207,8 @@ latex_documents = [
     (
         "index",
         "DnaFeaturesViewer.tex",
-        u"DnaFeaturesViewer Documentation",
-        u"Zulko",
+        "DnaFeaturesViewer Documentation",
+        "Zulko",
         "manual",
     )
 ]
@@ -234,8 +242,8 @@ man_pages = [
     (
         "index",
         "DnaFeaturesViewer",
-        u"PACKAGE_NAME Documentation",
-        [u"Zulko"],
+        "PACKAGE_NAME Documentation",
+        ["Zulko"],
         1,
     )
 ]
@@ -253,8 +261,8 @@ texinfo_documents = [
     (
         "index",
         "DnaFeaturesViewer",
-        u"DnaFeaturesViewer Documentation",
-        u"Zulko",
+        "DnaFeaturesViewer Documentation",
+        "Zulko",
         "DnaFeaturesViewer",
         "One line description of project.",
         "Miscellaneous",
@@ -277,10 +285,10 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u"DnaFeaturesViewer"
-epub_author = u"Zulko"
-epub_publisher = u"Zulko"
-epub_copyright = u"2016, Zulko"
+epub_title = "DnaFeaturesViewer"
+epub_author = "Zulko"
+epub_publisher = "Zulko"
+epub_copyright = "2016, Zulko"
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
@@ -332,4 +340,3 @@ epub_copyright = u"2016, Zulko"
 # epub_use_index = True
 
 # autodoc_member_order = 'bysource'
-

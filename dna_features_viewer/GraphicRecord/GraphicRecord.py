@@ -113,15 +113,16 @@ class GraphicRecord(MatplotlibPlottableMixin, BokehPlottableMixin):
         return self.first_index, self.last_index
 
     def to_biopython_record(self, sequence):
-        """
-        Example
-        -------
-        from Bio import SeqIO
-        gr_record = GraphicRecord(features=features, sequence_length=len(seq),
-                                  sequence=seq)
-        bio_record = gr_record.to_biopython_record()
-        with open("example.gb", "w+") as f:
-            SeqIO.write(record, f, "genbank")
+        """Export to Biopython record.
+
+        Examples
+        --------
+        >>> from Bio import SeqIO
+        >>> gr_record = GraphicRecord(features=features, sequence_length=len(seq),
+        >>>                           sequence=seq)
+        >>> bio_record = gr_record.to_biopython_record()
+        >>> with open("example.gb", "w+") as f:
+        >>>     SeqIO.write(record, f, "genbank")
         """
         features = [
             SeqFeature(

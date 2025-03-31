@@ -1,5 +1,7 @@
 .. include:: ../README.rst
 
+----
+
 .. toctree::
     :hidden:
     :maxdepth: 1
@@ -8,8 +10,6 @@
     ref
     tips
     examples
-
-
     
 
 .. raw:: html
