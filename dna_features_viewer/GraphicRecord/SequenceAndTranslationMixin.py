@@ -106,7 +106,9 @@ class SequenceAndTranslationMixin:
         if translation is None:
             new_loc = start - self.first_index, end - self.first_index, strand
             translation = extract_graphical_translation(
-                self.sequence, location=new_loc, long_form=long_form_translation,
+                self.sequence,
+                location=new_loc,
+                long_form=long_form_translation,
             )
         texts = [
             ((start + 3 * i, start + 3 * (i + 1)), aa)
@@ -129,7 +131,10 @@ class SequenceAndTranslationMixin:
             )
             if guides_intensity:
                 ax.axvline(
-                    start - 0.5, linewidth=0.1, color=guides_color, zorder=-10000,
+                    start - 0.5,
+                    linewidth=0.1,
+                    color=guides_color,
+                    zorder=-10000,
                 )
         if guides_intensity:
             ax.axvline(end - 0.5, linewidth=0.1, color=guides_color, zorder=-10000)

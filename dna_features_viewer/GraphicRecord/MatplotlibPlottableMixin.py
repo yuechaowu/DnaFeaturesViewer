@@ -274,7 +274,7 @@ class MatplotlibPlottableMixin(MultilinePlottableMixin, SequenceAndTranslationMi
         max_label_length,
         indicate_strand_in_label=False,
     ):
-        """"Place an annotation in the figure. Decide on inline vs. outline.
+        """ "Place an annotation in the figure. Decide on inline vs. outline.
 
         Parameters
         ----------
@@ -464,7 +464,16 @@ class MatplotlibPlottableMixin(MultilinePlottableMixin, SequenceAndTranslationMi
             self.plot_feature(ax=ax, feature=feature, level=level)
             if feature.label is None:
                 continue
-            (text, overflowing, nlines, (x1, x2,), height,) = self.place_annotation(
+            (
+                text,
+                overflowing,
+                nlines,
+                (
+                    x1,
+                    x2,
+                ),
+                height,
+            ) = self.place_annotation(
                 feature=feature,
                 ax=ax,
                 level=level,
@@ -573,10 +582,17 @@ class MatplotlibPlottableMixin(MultilinePlottableMixin, SequenceAndTranslationMi
             text = feature.legend_text
             if text is None:
                 continue
-            parameters = dict(label=text, facecolor=feature.color, edgecolor="black",)
+            parameters = dict(
+                label=text,
+                facecolor=feature.color,
+                edgecolor="black",
+            )
             if include_edge:
                 parameters.update(
-                    dict(linewidth=feature.linewidth, edgecolor=feature.linecolor,)
+                    dict(
+                        linewidth=feature.linewidth,
+                        edgecolor=feature.linecolor,
+                    )
                 )
             if text in features_parameters:
                 previous_parameters = features_parameters[text]

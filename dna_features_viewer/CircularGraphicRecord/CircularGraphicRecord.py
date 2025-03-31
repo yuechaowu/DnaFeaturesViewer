@@ -1,5 +1,4 @@
-"""Implements the CircularGraphicRecord class.
-"""
+"""Implements the CircularGraphicRecord class."""
 
 import matplotlib.patches as mpatches
 import numpy as np

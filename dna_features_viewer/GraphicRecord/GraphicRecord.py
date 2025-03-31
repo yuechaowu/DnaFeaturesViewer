@@ -154,9 +154,11 @@ class GraphicRecord(MatplotlibPlottableMixin, BokehPlottableMixin):
                 new_features.append(cropped_feature)
 
         return GraphicRecord(
-            sequence=self.sequence[start - first_index : end - first_index]
-            if self.sequence is not None
-            else None,
+            sequence=(
+                self.sequence[start - first_index : end - first_index]
+                if self.sequence is not None
+                else None
+            ),
             sequence_length=end - start,
             features=new_features,
             feature_level_height=self.feature_level_height,
@@ -175,8 +177,7 @@ class GraphicRecord(MatplotlibPlottableMixin, BokehPlottableMixin):
         return self.feature_level_height
 
     def coordinates_in_plot(self, x, level):
-        """Convert a sequence position and height level into a (x, y) position.
-        """
+        """Convert a sequence position and height level into a (x, y) position."""
         return (x, level * self.feature_level_height)
 
     def split_overflowing_features_circularly(self):

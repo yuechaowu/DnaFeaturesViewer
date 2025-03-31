@@ -3,6 +3,7 @@
 This is a plain arrow curved alongside a protion of circle, like you would
 expect a circular genetic feature to look.
 """
+
 import numpy as np
 import matplotlib.patches as mpatches
 
