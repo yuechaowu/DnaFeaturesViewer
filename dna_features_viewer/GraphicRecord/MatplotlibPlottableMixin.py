@@ -157,7 +157,12 @@ class MatplotlibPlottableMixin(MultilinePlottableMixin, SequenceAndTranslationMi
             head_length = 0.001
         else:
             width_pixel = self._get_ax_width(ax, unit="pixel")
-            head_length = 0.5 * width_pixel * feature.length / self.sequence_length
+            head_length = (
+                0.5
+                * width_pixel
+                * feature.length
+                / (ax.get_xlim()[1] - ax.get_xlim()[0])
+            )
             head_length = min(head_length, 0.6 * feature.thickness)
 
         arrowstyle = mpatches.ArrowStyle.Simple(
