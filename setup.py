@@ -1,14 +1,13 @@
-import ez_setup
-
-ez_setup.use_setuptools()
-
 from setuptools import setup, find_packages
 
-exec(open("dna_features_viewer/version.py").read())  # loads __version__
+version = {}
+with open("dna_features_viewer/version.py") as fp:
+    exec(fp.read(), version)
+
 
 setup(
     name="dna_features_viewer",
-    version=__version__,
+    version=version["__version__"],
     author="Zulko",
     description="Plot features from DNA sequences (e.g. Genbank) with Python",
     long_description=open("pypi-readme.rst").read(),
