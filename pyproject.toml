@@ -17,3 +17,4 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 exclude = ["docs*", "examples*", "tests*"]
+
