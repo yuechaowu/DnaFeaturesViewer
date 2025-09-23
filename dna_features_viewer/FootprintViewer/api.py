@@ -138,7 +138,7 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
     seq_len = len(record.seq)
     
     im = visualizer.plot_heatmap(ax2, heatmap_data, radii, seq_len, max_score, start)
-    ax2.set_xlabel(f"{chrom} 基因组位置 (bp)")
+    ax2.set_xlabel(f"{chrom} position (bp)")
     
     # 添加高亮区域
     axes_to_highlight = axes if 'axes' in locals() and len(axes) > 2 else [ax1, ax2]
@@ -274,7 +274,7 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
             ax.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
         else:
             # 只在最后一个子图显示x轴标签
-            ax.set_xlabel(f"{chrom} 基因组位置 (bp)")
+            ax.set_xlabel(f"{chrom} position (bp)")
     
     # 添加高亮区域
     visualizer.add_highlight_regions(axes, highlight_regions, start, seq_len)

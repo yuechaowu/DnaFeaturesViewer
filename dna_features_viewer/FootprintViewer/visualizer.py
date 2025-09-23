@@ -280,21 +280,29 @@ class FootprintVisualizer:
             first_index=start_pos  # 设置起始索引为实际基因组位置
         )
         
-        graphic_record.plot(ax=ax, with_ruler=False, draw_line=False)
+        level_offset = 0.2  # 轻微上移绘制位置，避免底部描边被挡
+        graphic_record.plot(ax=ax, with_ruler=False, draw_line=False, level_offset=level_offset)
         
-        # 添加转录本内部组件之间的虚线连接
-        self._add_intron_connections(ax, transcript_row, transcript_ranges, transcripts, start_pos)
+        # 计算当前行的中线位置（与绘制时的 level_offset 对齐）
+        y_center = graphic_record.feature_level_height * level_offset
         
-        # 设置行标签
-        row_labels = ', '.join(transcript_row)
-        ax.set_ylabel(f"{row_labels}", fontsize=9)
+        # 添加转录本内部组件之间的虚线连接（居中到 y_center）
+        self._add_intron_connections(ax, transcript_row, transcript_ranges, transcripts, start_pos, y_center=y_center)
+        
+        # 在每个转录本的范围中心添加名称标注
+        label_offset = 0.6 * graphic_record.feature_level_height
+        for transcript_name in transcript_row:
+            tr = transcript_ranges[transcript_name]
+            mid = (tr['start'] + tr['end']) / 2 + start_pos
+            ax.text(mid, y_center + label_offset, transcript_name, fontsize=8, ha='center', va='bottom')
+        
+        # 轴范围
         ax.set_xlim(start_pos, actual_end)
         
-        # 减小y轴标签的边距
+        # 调整y轴刻度样式（不再使用y轴标签，以免与文本标注重复）
         ax.tick_params(axis='y', labelsize=8)
-        ax.yaxis.set_label_coords(-0.05, 0.5)
     
-    def _add_intron_connections(self, ax, transcript_row, transcript_ranges, transcripts, start_pos):
+    def _add_intron_connections(self, ax, transcript_row, transcript_ranges, transcripts, start_pos, y_center=0.0):
         """
         在同一转录本的不同feature之间添加虚线连接（表示内含子）
         
@@ -315,8 +323,7 @@ class FootprintVisualizer:
                 # 按基因组位置排序组件
                 sorted_components = sorted(components, key=lambda x: x['start'])
                 
-                # 确定y坐标（轴的中心位置）。各转录本组件在该行默认位于 y=0 的中线
-                y_center = 0
+                # 使用给定的居中线 y_center
                 
                 # 在相邻组件之间绘制虚线
                 for i in range(len(sorted_components) - 1):
@@ -346,7 +353,7 @@ class FootprintVisualizer:
                                 markersize=6,
                                 zorder=0)
     
-    def _add_intron_connections_simple(self, ax, record, start_pos):
+    def _add_intron_connections_simple(self, ax, record, start_pos, y_center=0.0):
         """
         为简单布局（单行）添加转录本内部的虚线连接
         
@@ -380,8 +387,7 @@ class FootprintVisualizer:
                 # 按基因组位置排序组件
                 sorted_components = sorted(components, key=lambda x: x['start'])
                 
-                # 确定y坐标（轴的中心位置）。默认位于 y=0 的中线
-                y_center = 0
+                # 使用给定的居中线 y_center
                 
                 # 在相邻组件之间绘制虚线
                 for i in range(len(sorted_components) - 1):
