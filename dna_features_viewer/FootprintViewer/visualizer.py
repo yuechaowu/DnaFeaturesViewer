@@ -221,7 +221,7 @@ class FootprintVisualizer:
         
         return transcript_rows
     
-    def draw_transcript_row(self, ax, transcript_row, transcript_ranges, transcripts, record, start_pos):
+    def draw_transcript_row(self, ax, transcript_row, transcript_ranges, transcripts, record, start_pos, region_len=None):
         """
         绘制一行转录本
         
@@ -273,7 +273,10 @@ class FootprintVisualizer:
                 ))
         
         # 创建并绘制图形记录
-        actual_end = start_pos + len(record.seq)
+        if region_len is None:
+            actual_end = start_pos + len(record.seq)
+        else:
+            actual_end = start_pos + region_len - 1
         graphic_record = GraphicRecord(
             sequence_length=len(record.seq),
             features=graphic_features,
@@ -446,6 +449,19 @@ class FootprintVisualizer:
         
         ax.set_xlim(actual_start, actual_end)
         ax.set_ylabel("FootPrint Size (bp)")
+
+        # 设置Y轴刻度：选择4个等间隔半径值，刻度文本为半径*2
+        try:
+            if len(radii) > 0:
+                num_ticks = min(4, len(radii))
+                indices = np.linspace(0, len(radii) - 1, num_ticks).astype(int)
+                tick_positions = [float(radii[i]) for i in indices]
+                tick_labels = [str(int(round(float(radii[i]) * 2))) for i in indices]
+                ax.set_yticks(tick_positions)
+                ax.set_yticklabels(tick_labels)
+        except Exception:
+            # 若设置失败则忽略，保持默认刻度
+            pass
         # 不再设置标题
         
         return im
