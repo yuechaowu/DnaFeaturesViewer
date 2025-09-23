@@ -70,7 +70,7 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
     
     # 创建图形
     fig, (ax1, ax2) = plt.subplots(
-        2, 1, figsize=figsize, sharex=True, 
+        2, 1, figsize=figsize, 
         gridspec_kw={"height_ratios": [3, 2]}
     )
     
@@ -93,42 +93,52 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
                 figsize = visualizer._auto_figsize(total_rows)
             
             fig, axes = plt.subplots(
-                total_rows, 1, figsize=figsize, sharex=True,
+                total_rows, 1, figsize=figsize,
                 gridspec_kw={"height_ratios": height_ratios}
             )
             
             if total_rows == 1:
                 axes = [axes]
             
-            # 绘制每一行的转录本
+            # 绘制每一行的转录本，隐藏所有转录本轨道的x轴标签
             for row_idx, transcript_row in enumerate(transcript_rows):
-                visualizer.draw_transcript_row(axes[row_idx], transcript_row, transcript_ranges, transcripts, record)
+                visualizer.draw_transcript_row(axes[row_idx], transcript_row, transcript_ranges, transcripts, record, start)
+                # 隐藏所有转录本轨道的x轴标签（只有最后的footprint热图轨道显示x轴标签）
+                axes[row_idx].tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
             
             # footprint热图使用最后一个轴
             ax2 = axes[-1]
             
-            # 设置总标题
-            if len(transcript_rows) > 0:
-                axes[0].set_title(f"基因注释: {chrom}:{start}-{end}", fontsize=12, pad=10)
+            # 不再设置标题
         else:
-            # 单行布局 - 使用原有方式
+            # 单行布局 - 使用原有方式，但需要调整坐标系
             translator = TypeOnlyTranslator()
             graphic_record = translator.translate_record(record)
-            graphic_record.plot(ax=ax1, with_ruler=False, strand_in_label_threshold=4)
-            ax1.set_title(f"基因注释: {chrom}:{start}-{end}", fontsize=12, pad=10)
+            graphic_record.first_index = start  # 设置起始索引为实际基因组位置
+            graphic_record.plot(ax=ax1, with_ruler=False, draw_line=False, strand_in_label_threshold=4)
+            # 为单行布局添加虚线连接
+            visualizer._add_intron_connections_simple(ax1, record, start)
+            ax1.set_xlim(start, start + len(record.seq))
+            # 隐藏基因注释轨道的x轴标签
+            ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     else:
         # 没有特征，使用原有方式
         translator = TypeOnlyTranslator()
         graphic_record = translator.translate_record(record)
-        graphic_record.plot(ax=ax1, with_ruler=False, strand_in_label_threshold=4)
-        ax1.set_title(f"基因注释: {chrom}:{start}-{end}", fontsize=12, pad=10)
+        graphic_record.first_index = start  # 设置起始索引为实际基因组位置
+        graphic_record.plot(ax=ax1, with_ruler=False, draw_line=False, strand_in_label_threshold=4)
+        # 为无特征情况添加虚线连接（如果有合适的特征）
+        visualizer._add_intron_connections_simple(ax1, record, start)
+        ax1.set_xlim(start, start + len(record.seq))
+        # 隐藏基因注释轨道的x轴标签
+        ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     
     # 绘制footprint分数热图
     print("正在绘制footprint分数热图...")
     seq_len = len(record.seq)
     
-    im = visualizer.plot_heatmap(ax2, heatmap_data, radii, seq_len, max_score)
-    ax2.set_xlabel("Position (bp)")
+    im = visualizer.plot_heatmap(ax2, heatmap_data, radii, seq_len, max_score, start)
+    ax2.set_xlabel(f"{chrom} 基因组位置 (bp)")
     
     # 添加高亮区域
     axes_to_highlight = axes if 'axes' in locals() and len(axes) > 2 else [ax1, ax2]
@@ -199,7 +209,7 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
     # 创建子图布局：1个基因注释图 + n个组织热图
     height_ratios = [3] + [2] * n_tissues
     fig, axes = plt.subplots(
-        n_tissues + 1, 1, figsize=figsize, sharex=True,
+        n_tissues + 1, 1, figsize=figsize,
         gridspec_kw={"height_ratios": height_ratios}
     )
     
@@ -210,8 +220,13 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
     print("正在绘制基因注释...")
     translator = TypeOnlyTranslator()
     graphic_record = translator.translate_record(record)
-    graphic_record.plot(ax=axes[0], with_ruler=False, strand_in_label_threshold=4)
-    axes[0].set_title(f"基因注释: {chrom}:{start}-{end}", fontsize=14, pad=10)
+    graphic_record.first_index = start  # 设置起始索引为实际基因组位置
+    graphic_record.plot(ax=axes[0], with_ruler=False, draw_line=False, strand_in_label_threshold=4)
+    # 为多组织比较的基因注释轨道添加虚线连接
+    visualizer._add_intron_connections_simple(axes[0], record, start)
+    axes[0].set_xlim(start, start + seq_len)
+    # 隐藏基因注释轨道的x轴刻度和标签
+    axes[0].tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     
     # 为每个组织绘制footprint热图
     tissue_names = list(fp_files_dict.keys())
@@ -249,11 +264,17 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
     im = None
     for i, (tissue, heatmap_data, radii, _) in enumerate(tissue_data):
         ax = axes[i + 1]
-        im = visualizer.plot_heatmap(ax, heatmap_data, radii, seq_len, global_max, title=f"{tissue}")
+        im = visualizer.plot_heatmap(ax, heatmap_data, radii, seq_len, global_max, start, title=f"{tissue}")
         
-        # 只在最后一个子图添加x轴标签
-        if i == n_tissues - 1:
-            ax.set_xlabel("相对位置 (bp)")
+        # 为每个组织添加y轴标签
+        ax.set_ylabel(f"{tissue}\nFootPrint Size (bp)")
+        
+        # 隐藏除了最后一个子图外的x轴刻度和标签
+        if i < n_tissues - 1:
+            ax.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+        else:
+            # 只在最后一个子图显示x轴标签
+            ax.set_xlabel(f"{chrom} 基因组位置 (bp)")
     
     # 添加高亮区域
     visualizer.add_highlight_regions(axes, highlight_regions, start, seq_len)

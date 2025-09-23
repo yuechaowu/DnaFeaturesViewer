@@ -221,9 +221,17 @@ class FootprintVisualizer:
         
         return transcript_rows
     
-    def draw_transcript_row(self, ax, transcript_row, transcript_ranges, transcripts, record):
+    def draw_transcript_row(self, ax, transcript_row, transcript_ranges, transcripts, record, start_pos):
         """
         绘制一行转录本
+        
+        参数:
+        - ax: matplotlib轴对象
+        - transcript_row: 转录本行列表
+        - transcript_ranges: 转录本范围字典
+        - transcripts: 转录本数据字典
+        - record: GenBank记录对象
+        - start_pos: 区域起始位置（用于坐标转换）
         """
         # 为每个转录本分配独特的基础颜色
         transcript_names = list(transcript_ranges.keys())
@@ -238,33 +246,16 @@ class FootprintVisualizer:
             
             # 判断是否为多组件转录本
             if len(components) > 1:
-                # 多组件转录本：先绘制整体框架，然后在框架内绘制组件
-                base_color = transcript_color_map[transcript_name]
-                
-                # 绘制转录本整体框架（有填充的背景）
-                background_color = (*base_color[:3], 0.3)  # 添加透明度
-                graphic_features.append(GraphicFeature(
-                    start=transcript_range['start'],
-                    end=transcript_range['end'],
-                    strand=components[0]['strand'],
-                    color=background_color,  # 有填充
-                    linewidth=2,
-                    linecolor=base_color,
-                    label=f"{transcript_name}",
-                    thickness=20
-                ))
-                
-                # 在框架内绘制各个组件（较细，位置稍微偏移以显示在框架内）
+                # 多组件转录本：仅绘制各个组件，不绘制整体背景框与描边
                 for comp in components:
                     comp_color = self.component_colors.get(comp['component_type'], "#CCCCCC")
-                    
                     graphic_features.append(GraphicFeature(
-                        start=comp['start'],
-                        end=comp['end'],
+                        start=comp['start'] + start_pos,
+                        end=comp['end'] + start_pos,
                         strand=comp['strand'],
                         color=comp_color,
                         label=f"{comp['component_type']}",
-                        thickness=12,  # 较细的组件
+                        thickness=12,
                         linewidth=1
                     ))
             else:
@@ -273,8 +264,8 @@ class FootprintVisualizer:
                 comp_color = self.component_colors.get(comp['component_type'], "#CCCCCC")
                 
                 graphic_features.append(GraphicFeature(
-                    start=comp['start'],
-                    end=comp['end'],
+                    start=comp['start'] + start_pos,
+                    end=comp['end'] + start_pos,
                     strand=comp['strand'],
                     color=comp_color,
                     label=f"{transcript_name}",
@@ -282,23 +273,145 @@ class FootprintVisualizer:
                 ))
         
         # 创建并绘制图形记录
+        actual_end = start_pos + len(record.seq)
         graphic_record = GraphicRecord(
             sequence_length=len(record.seq),
-            features=graphic_features
+            features=graphic_features,
+            first_index=start_pos  # 设置起始索引为实际基因组位置
         )
         
-        graphic_record.plot(ax=ax, with_ruler=False)
+        graphic_record.plot(ax=ax, with_ruler=False, draw_line=False)
+        
+        # 添加转录本内部组件之间的虚线连接
+        self._add_intron_connections(ax, transcript_row, transcript_ranges, transcripts, start_pos)
         
         # 设置行标签
         row_labels = ', '.join(transcript_row)
         ax.set_ylabel(f"{row_labels}", fontsize=9)
-        ax.set_xlim(0, len(record.seq))
+        ax.set_xlim(start_pos, actual_end)
         
         # 减小y轴标签的边距
         ax.tick_params(axis='y', labelsize=8)
         ax.yaxis.set_label_coords(-0.05, 0.5)
     
-    def plot_heatmap(self, ax, heatmap_data, radii, seq_len, max_score, title=""):
+    def _add_intron_connections(self, ax, transcript_row, transcript_ranges, transcripts, start_pos):
+        """
+        在同一转录本的不同feature之间添加虚线连接（表示内含子）
+        
+        参数:
+        - ax: matplotlib轴对象
+        - transcript_row: 转录本行列表
+        - transcript_ranges: 转录本范围字典
+        - transcripts: 转录本数据字典
+        - start_pos: 区域起始位置
+        """
+        
+        for transcript_name in transcript_row:
+            transcript_range = transcript_ranges[transcript_name]
+            components = transcript_range['components']
+            
+            # 只为多组件转录本绘制连接线
+            if len(components) > 1:
+                # 按基因组位置排序组件
+                sorted_components = sorted(components, key=lambda x: x['start'])
+                
+                # 确定y坐标（轴的中心位置）。各转录本组件在该行默认位于 y=0 的中线
+                y_center = 0
+                
+                # 在相邻组件之间绘制虚线
+                for i in range(len(sorted_components) - 1):
+                    current_comp = sorted_components[i]
+                    next_comp = sorted_components[i + 1]
+                    
+                    # 计算连接线的起始和结束位置（实际基因组坐标）
+                    line_start = current_comp['end'] + start_pos
+                    line_end = next_comp['start'] + start_pos
+                    
+                    # 只在有间隔的情况下绘制连接线
+                    if line_end > line_start:
+                        # 绘制虚线连接
+                        ax.plot([line_start, line_end], [y_center, y_center], 
+                                linestyle='--', 
+                                color='gray', 
+                                alpha=0.6, 
+                                linewidth=1.5,
+                                zorder=-1)  # 置于特征之下，避免覆盖
+                        
+                        # 可选：在连接线中点添加小标记表示内含子
+                        intron_center = (line_start + line_end) / 2
+                        ax.plot([intron_center], [y_center], 
+                                marker='|', 
+                                color='gray', 
+                                alpha=0.8, 
+                                markersize=6,
+                                zorder=0)
+    
+    def _add_intron_connections_simple(self, ax, record, start_pos):
+        """
+        为简单布局（单行）添加转录本内部的虚线连接
+        
+        参数:
+        - ax: matplotlib轴对象
+        - record: GenBank记录对象
+        - start_pos: 区域起始位置
+        """
+        
+        # 按转录本分组特征
+        transcripts = {}
+        for feature in record.features:
+            if 'label' in feature.qualifiers:
+                label = feature.qualifiers['label'][0]
+                if '-' in label:
+                    transcript_name = label.split('-')[0]
+                    
+                    if transcript_name not in transcripts:
+                        transcripts[transcript_name] = []
+                    
+                    transcripts[transcript_name].append({
+                        'start': int(feature.location.start),
+                        'end': int(feature.location.end),
+                        'type': label.split('-')[1] if '-' in label else feature.type,
+                        'strand': feature.location.strand
+                    })
+        
+        # 为每个转录本绘制连接线
+        for transcript_name, components in transcripts.items():
+            if len(components) > 1:
+                # 按基因组位置排序组件
+                sorted_components = sorted(components, key=lambda x: x['start'])
+                
+                # 确定y坐标（轴的中心位置）。默认位于 y=0 的中线
+                y_center = 0
+                
+                # 在相邻组件之间绘制虚线
+                for i in range(len(sorted_components) - 1):
+                    current_comp = sorted_components[i]
+                    next_comp = sorted_components[i + 1]
+                    
+                    # 计算连接线的起始和结束位置（实际基因组坐标）
+                    line_start = current_comp['end'] + start_pos
+                    line_end = next_comp['start'] + start_pos
+                    
+                    # 只在有间隔的情况下绘制连接线
+                    if line_end > line_start:
+                        # 绘制虚线连接
+                        ax.plot([line_start, line_end], [y_center, y_center], 
+                                linestyle='--', 
+                                color='gray', 
+                                alpha=0.6, 
+                                linewidth=1.5,
+                                zorder=-1)
+                        
+                        # 在连接线中点添加小标记表示内含子
+                        intron_center = (line_start + line_end) / 2
+                        ax.plot([intron_center], [y_center], 
+                                marker='|', 
+                                color='gray', 
+                                alpha=0.8, 
+                                markersize=6,
+                                zorder=0)
+    
+    def plot_heatmap(self, ax, heatmap_data, radii, seq_len, max_score, start_pos, title=""):
         """
         绘制footprint分数热图
         
@@ -308,22 +421,26 @@ class FootprintVisualizer:
         - radii: 半径数组
         - seq_len: 序列长度
         - max_score: 最大分数值
-        - title: 图表标题
+        - start_pos: 区域起始位置（用于x轴坐标转换）
+        - title: 图表标题（已弃用，不再显示标题）
         """
+        # 计算实际基因组坐标范围
+        actual_start = start_pos
+        actual_end = start_pos + seq_len
+        
         im = ax.imshow(
             heatmap_data,
             aspect="auto",
             origin="lower",
-            extent=[0, seq_len, radii[0]-0.5, radii[-1]+0.5],
+            extent=[actual_start, actual_end, radii[0]-0.5, radii[-1]+0.5],
             interpolation="nearest",
             cmap=plt.cm.Blues,
             vmin=0, vmax=max_score
         )
         
-        ax.set_xlim(0, seq_len)
+        ax.set_xlim(actual_start, actual_end)
         ax.set_ylabel("FootPrint Size (bp)")
-        if title:
-            ax.set_title(title)
+        # 不再设置标题
         
         return im
     
@@ -339,10 +456,12 @@ class FootprintVisualizer:
         """
         if highlight_regions:
             for region_start, region_end in highlight_regions:
-                # 转换为相对坐标
-                rel_start = max(0, region_start - start)
-                rel_end = min(seq_len, region_end - start)
+                # 使用实际基因组坐标，限制在当前区域范围内
+                actual_start = max(start, region_start)
+                actual_end = min(start + seq_len, region_end)
                 
-                # 在所有轴上添加高亮
-                for ax in axes:
-                    ax.axvspan(rel_start, rel_end, color="red", alpha=0.3, linewidth=0.5)
+                # 只有当高亮区域与当前区域有重叠时才绘制
+                if actual_start < actual_end:
+                    # 在所有轴上添加高亮
+                    for ax in axes:
+                        ax.axvspan(actual_start, actual_end, color="red", alpha=0.3, linewidth=0.5)

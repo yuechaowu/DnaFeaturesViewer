@@ -35,7 +35,15 @@ class FootprintDataProcessor:
         """
         
         # 读取parquet文件
-        df = pd.read_parquet(fp_score_file, engine="fastparquet")
+        try:
+            df = pd.read_parquet(fp_score_file, engine="fastparquet")
+        except ImportError:
+            # 如果fastparquet不可用，尝试使用pyarrow
+            try:
+                df = pd.read_parquet(fp_score_file, engine="pyarrow")
+            except ImportError:
+                # 如果两个都不可用，使用默认引擎
+                df = pd.read_parquet(fp_score_file)
         
         # 筛选指定区域的数据
         region_data = df[
