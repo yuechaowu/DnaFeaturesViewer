@@ -8,6 +8,7 @@ from .BiopythonTranslator import (
     BlackBoxlessLabelTranslator,
 )
 from .biotools import load_record, annotate_biopython_record
+from . import FootprintViewer
 
 from .version import __version__
 
@@ -18,5 +19,6 @@ __all__ = [
     "BiopythonTranslator",
     "BlackBoxlessLabelTranslator",
     "annotate_biopython_record",
+    "FootprintViewer",
     "__version__",
 ]
