@@ -40,13 +40,13 @@
 from dna_features_viewer.FootprintViewer import plot_region_with_footprints
 
 fig = plot_region_with_footprints(
-    genome_fasta='data/genome.fa',
-    gff3_file='data/annotations.gff3',
-    fp_score_file='data/leaf_footprints.parquet',
-    chrom='Chr1',
-    start=1000,
-    end=5000,
-    highlight_regions=[(2000, 2500)],  # 高亮感兴趣区域
+    genome_fasta=None,
+    gff3_file='./examples/FootprintViewer/data/annotations.gff3',
+    fp_score_file='./examples/FootprintViewer/data/leaf_footprints.parquet',
+    chrom='Chr4',
+    start=18487724,
+    end=18489875,
+    highlight_regions=[(18487824, 18487924)],  # 高亮感兴趣区域
     output_file='single_tissue_analysis.pdf'
 )
 ```
@@ -56,19 +56,19 @@ fig = plot_region_with_footprints(
 from dna_features_viewer.FootprintViewer import plot_multi_tissue_comparison
 
 fp_files = {
-    'leaf': 'data/leaf_footprints.parquet',
-    'root': 'data/root_footprints.parquet',
-    'inflorescence': 'data/inflorescence_footprints.parquet'
+    'leaf': './examples/FootprintViewer/data/arabidopsis_leaf_test.parquet', 
+    'root': './examples/FootprintViewer/data/arabidopsis_root_test.parquet',
+    'inflorescence': './examples/FootprintViewer/data/arabidopsis_inflorescence_test.parquet'
 }
 
 fig = plot_multi_tissue_comparison(
-    genome_fasta='data/genome.fa',
-    gff3_file='data/annotations.gff3',
+    genome_fasta=None,
+    gff3_file='./examples/FootprintViewer/data/arabidopsis_test.gff3',
     fp_files_dict=fp_files,
-    chrom='Chr1',
-    start=1000,
-    end=5000,
-    highlight_regions=[(2000, 2500), (3000, 3500)],
+    chrom='Chr4',
+    start=18487724,
+    end=18489875,
+    highlight_regions=[(18487824, 18487924)],
     output_file='multi_tissue_comparison.pdf'
 )
 ```
@@ -160,31 +160,73 @@ pip install -e .
 
 ### 完整示例Notebook
 
+```bash
+# 示例代码路径
+./examples/FootprintViewer/
+```
+
 运行完整的分析示例：
 ```bash
 # 启动Jupyter Notebook
 jupyter notebook examples/FootprintViewer/FootprintViewer_example.ipynb
 ```
 
-### 快速开始代码
+### 📁 输出结果
+运行示例代码后，会在`examples/FootprintViewer/output/`目录下生成以下可视化结果：
 
-```python
-from dna_features_viewer.FootprintViewer import plot_region_with_footprints
-
-# 单组织FootPrint分析
-fig = plot_region_with_footprints(
-    genome_fasta='examples/FootprintViewer/data/arabidopsis_test.fa',
-    gff3_file='examples/FootprintViewer/data/arabidopsis_test.gff3', 
-    fp_score_file='examples/FootprintViewer/data/arabidopsis_leaf_test.parquet',
-    chrom='Chr1',
-    start=3631,
-    end=5899,
-    highlight_regions=[(4000, 4200)],
-    output_file='leaf_footprint_analysis.pdf'
-)
-
-print("分析完成！PDF文件已生成。")
 ```
+output/
+├── single_tissue_footprint.pdf    # 单组织FootPrint分析结果
+└── multi_tissue_footprint.pdf     # 多组织比较分析结果
+```
+
+这些高质量的PDF文件展示了FootprintViewer模块的强大可视化能力，详细结果展示请参见下方的[📊 可视化结果展示](#-可视化结果展示)章节。
+
+
+
+## 📊 可视化结果展示
+
+以下是使用FootprintViewer模块生成的实际可视化结果，展示了该工具在FootPrint数据分析中的强大能力：
+
+### 🔬 单组织FootPrint分析结果
+
+**文件位置**：`examples/FootprintViewer/output/single_tissue_footprint.pdf`
+
+![单组织FootPrint分析](tests/img/single_tissue_footprint.png)
+
+该图展示了：
+- **基因结构注释**：清晰显示目标区域的基因结构，包括外显子、内含子和转录方向
+- **FootPrint热图**：不同大小FootPrint的分数分布，颜色深度表示信号强度
+- **区域高亮**：突出显示感兴趣的特定基因组区域
+- **坐标系统**：精确的基因组位置标注，便于定位分析
+
+### 🎯 多组织比较分析结果
+
+**文件位置**：`examples/FootprintViewer/output/multi_tissue_footprint.pdf`
+
+![多组织FootPrint比较](tests/img/multi_tissue_footprint.png)
+
+该图展示了：
+- **多组织并排比较**：同时展示leaf（叶片）、root（根部）、inflorescence（花序）三个组织的FootPrint数据
+- **组织特异性差异**：直观比较不同组织间开放染色质区域的差异
+
+### 🎨 可视化特点
+
+| 特征 | 描述 | 科研价值 |
+|------|------|----------|
+| **高分辨率输出** | 矢量PDF格式，支持无损缩放 | 适合科研论文发表 |
+| **专业配色方案** | 科研级颜色搭配，清晰易读 | 提升图表专业度 |
+| **智能布局** | 自动处理重叠基因，避免视觉冲突 | 保证信息完整性 |
+| **多尺度展示** | 同时显示基因结构和FootPrint信号 | 多层次数据整合 |
+| **交互性强** | 支持区域高亮和自定义标注 | 灵活的分析需求 |
+
+### 📈 应用场景
+
+这些可视化结果特别适用于：
+- **表观遗传学研究**：分析不同组织的开放染色质模式
+- **基因调控分析**：识别组织特异性调控元件
+- **比较基因组学**：跨组织/条件的FootPrint差异分析
+- **科研论文配图**：高质量的学术发表图表
 
 ## 🛠️ 其他功能模块
 
