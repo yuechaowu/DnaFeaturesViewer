@@ -34,7 +34,7 @@ class GenBankCreator:
         只读取转录本中的5UTR、CDS、3UTR记录，label形式为转录本-XX
         
         参数:
-        - genome_fasta: 基因组FASTA文件路径
+        - genome_fasta: 基因组FASTA文件路径（可为None；为None时以等长'N'序列代替）
         - gff3_file: GFF3注释文件路径  
         - chrom: 染色体名称 (如 'Chr1')
         - start: 起始位置 (1-based)
@@ -45,14 +45,18 @@ class GenBankCreator:
         - GenBank文件路径
         """
         
-        # 读取基因组序列
-        genome_dict = SeqIO.to_dict(SeqIO.parse(genome_fasta, "fasta"))
-        
-        if chrom not in genome_dict:
-            raise ValueError(f"染色体 {chrom} 在基因组文件中未找到")
-        
-        # 提取目标区域序列 (转换为0-based索引)
-        region_seq = genome_dict[chrom].seq[start-1:end]
+        # 准备区域序列
+        region_len = end - start + 1
+        if genome_fasta is None or not os.path.exists(genome_fasta):
+            # 无FASTA：以等长'N'序列代替
+            region_seq = Seq('N' * region_len)
+        else:
+            # 读取基因组序列
+            genome_dict = SeqIO.to_dict(SeqIO.parse(genome_fasta, "fasta"))
+            if chrom not in genome_dict:
+                raise ValueError(f"染色体 {chrom} 在基因组文件中未找到")
+            # 提取目标区域序列 (转换为0-based索引)
+            region_seq = genome_dict[chrom].seq[start-1:end]
         
         # 创建SeqRecord
         record = SeqRecord(

@@ -2,14 +2,29 @@
 name = "dna_features_viewer"
 version = "3.1.5"
 license = "MIT"
-authors = [{ name = "Zulko" }]
+authors = [{ name = "WuYueChao" }]
 description = "Plot features from DNA sequences (e.g. Genbank) with Python"
 readme = "pypi-readme.rst"
 keywords = ["DNA", "Sequence", "Feature", "Genbank", "Biopython", "Matplotlib"]
-dependencies = ["matplotlib>=3", "Biopython", "packaging"]
+dependencies = [
+    "matplotlib==3.10.6",
+    "matplotlib-inline==0.1.7",
+    "seaborn==0.13.2",
+    "biopython==1.85",
+    "tqdm==4.67.1",
+    "bokeh==3.8.0",
+    "bcbio-gff==0.7.1",
+    "numpy==2.3.3",
+    "packaging==25.0",
+    "numpy==2.3.3",
+    "pandas==2.3.2",
+    "pyarrow==21.0.0",
+    "fastparquet==2024.11.0",                      
+    "ipykernel==6.30.1"                              
+]
 
 [project.urls]
-Homepage = "https://github.com/Edinburgh-Genome-Foundry/DnaFeaturesViewer"
+Homepage = "https://github.com/yuechaowu/DnaFeaturesViewer.git"
 
 [build-system]
 requires = ["setuptools"]
