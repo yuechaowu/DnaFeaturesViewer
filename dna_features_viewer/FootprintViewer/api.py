@@ -112,25 +112,27 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
             
             # 不再设置标题
         else:
-            # 单行布局 - 使用原有方式，但需要调整坐标系
+            # 单行布局 - 使用相对坐标系，避免坐标值过大导致的渲染问题
             translator = TypeOnlyTranslator()
             graphic_record = translator.translate_record(record)
-            graphic_record.first_index = start  # 设置起始索引为实际基因组位置
+            # 不设置first_index，使用相对坐标（从0开始）
             graphic_record.plot(ax=ax1, with_ruler=False, draw_line=False, strand_in_label_threshold=4)
-            # 为单行布局添加虚线连接
-            visualizer._add_intron_connections_simple(ax1, record, start)
-            ax1.set_xlim(start, end)
+            # 为单行布局添加虚线连接（使用相对坐标）
+            visualizer._add_intron_connections_simple(ax1, record, 0)
+            # 设置x轴范围为相对坐标
+            ax1.set_xlim(0, len(record.seq))
             # 隐藏基因注释轨道的x轴标签
             ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     else:
-        # 没有特征，使用原有方式
+        # 没有特征，使用相对坐标系
         translator = TypeOnlyTranslator()
         graphic_record = translator.translate_record(record)
-        graphic_record.first_index = start  # 设置起始索引为实际基因组位置
+        # 不设置first_index，使用相对坐标（从0开始）
         graphic_record.plot(ax=ax1, with_ruler=False, draw_line=False, strand_in_label_threshold=4)
-        # 为无特征情况添加虚线连接（如果有合适的特征）
-        visualizer._add_intron_connections_simple(ax1, record, start)
-        ax1.set_xlim(start, end)
+        # 为无特征情况添加虚线连接（使用相对坐标）
+        visualizer._add_intron_connections_simple(ax1, record, 0)
+        # 设置x轴范围为相对坐标
+        ax1.set_xlim(0, len(record.seq))
         # 隐藏基因注释轨道的x轴标签
         ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
     
@@ -138,7 +140,9 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
     print("正在绘制footprint分数热图...")
     region_len = end - start + 1
     
-    im = visualizer.plot_heatmap(ax2, heatmap_data, radii, region_len, max_score, start)
+    # 对于单行布局，热图使用相对坐标（从0开始）
+    heatmap_start = 0 if 'axes' not in locals() or len(axes) <= 2 else start
+    im = visualizer.plot_heatmap(ax2, heatmap_data, radii, region_len, max_score, heatmap_start)
     ax2.set_xlabel(f"{chrom} position (bp)")
     
     # 添加高亮区域

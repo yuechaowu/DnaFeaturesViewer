@@ -232,6 +232,7 @@ class FootprintVisualizer:
         - transcripts: 转录本数据字典
         - record: GenBank记录对象
         - start_pos: 区域起始位置（用于坐标转换）
+        - region_len: 区域长度
         """
         # 为每个转录本分配独特的基础颜色
         transcript_names = list(transcript_ranges.keys())
@@ -250,8 +251,8 @@ class FootprintVisualizer:
                 for comp in components:
                     comp_color = self.component_colors.get(comp['component_type'], "#CCCCCC")
                     graphic_features.append(GraphicFeature(
-                        start=comp['start'] + start_pos,
-                        end=comp['end'] + start_pos,
+                        start=comp['start'],  # 使用相对坐标
+                        end=comp['end'],      # 使用相对坐标
                         strand=comp['strand'],
                         color=comp_color,
                         label=f"{comp['component_type']}",
@@ -264,8 +265,8 @@ class FootprintVisualizer:
                 comp_color = self.component_colors.get(comp['component_type'], "#CCCCCC")
                 
                 graphic_features.append(GraphicFeature(
-                    start=comp['start'] + start_pos,
-                    end=comp['end'] + start_pos,
+                    start=comp['start'],  # 使用相对坐标
+                    end=comp['end'],      # 使用相对坐标
                     strand=comp['strand'],
                     color=comp_color,
                     label=f"{transcript_name}",
@@ -274,13 +275,13 @@ class FootprintVisualizer:
         
         # 创建并绘制图形记录
         if region_len is None:
-            actual_end = start_pos + len(record.seq)
+            actual_end = len(record.seq)
         else:
-            actual_end = start_pos + region_len - 1
+            actual_end = region_len
         graphic_record = GraphicRecord(
             sequence_length=len(record.seq),
-            features=graphic_features,
-            first_index=start_pos  # 设置起始索引为实际基因组位置
+            features=graphic_features
+            # 不设置first_index，使用相对坐标
         )
         
         level_offset = 0.2  # 轻微上移绘制位置，避免底部描边被挡
@@ -290,17 +291,17 @@ class FootprintVisualizer:
         y_center = graphic_record.feature_level_height * level_offset
         
         # 添加转录本内部组件之间的虚线连接（居中到 y_center）
-        self._add_intron_connections(ax, transcript_row, transcript_ranges, transcripts, start_pos, y_center=y_center)
+        self._add_intron_connections(ax, transcript_row, transcript_ranges, transcripts, 0, y_center=y_center)  # 使用相对坐标
         
         # 在每个转录本的范围中心添加名称标注
         label_offset = 0.6 * graphic_record.feature_level_height
         for transcript_name in transcript_row:
             tr = transcript_ranges[transcript_name]
-            mid = (tr['start'] + tr['end']) / 2 + start_pos
+            mid = (tr['start'] + tr['end']) / 2  # 使用相对坐标
             ax.text(mid, y_center + label_offset, transcript_name, fontsize=8, ha='center', va='bottom')
         
-        # 轴范围
-        ax.set_xlim(start_pos, actual_end)
+        # 轴范围（使用相对坐标）
+        ax.set_xlim(0, actual_end)
         
         # 调整y轴刻度样式（不再使用y轴标签，以免与文本标注重复）
         ax.tick_params(axis='y', labelsize=8)
@@ -333,9 +334,9 @@ class FootprintVisualizer:
                     current_comp = sorted_components[i]
                     next_comp = sorted_components[i + 1]
                     
-                    # 计算连接线的起始和结束位置（实际基因组坐标）
-                    line_start = current_comp['end'] + start_pos
-                    line_end = next_comp['start'] + start_pos
+                    # 计算连接线的起始和结束位置（使用相对坐标）
+                    line_start = current_comp['end']
+                    line_end = next_comp['start']
                     
                     # 只在有间隔的情况下绘制连接线
                     if line_end > line_start:
@@ -397,9 +398,9 @@ class FootprintVisualizer:
                     current_comp = sorted_components[i]
                     next_comp = sorted_components[i + 1]
                     
-                    # 计算连接线的起始和结束位置（实际基因组坐标）
-                    line_start = current_comp['end'] + start_pos
-                    line_end = next_comp['start'] + start_pos
+                    # 计算连接线的起始和结束位置（使用相对坐标）
+                    line_start = current_comp['end']
+                    line_end = next_comp['start']
                     
                     # 只在有间隔的情况下绘制连接线
                     if line_end > line_start:
