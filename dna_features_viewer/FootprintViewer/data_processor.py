@@ -45,12 +45,24 @@ class FootprintDataProcessor:
                 # 如果两个都不可用，使用默认引擎
                 df = pd.read_parquet(fp_score_file)
         
-        # 筛选指定区域的数据
-        region_data = df[
-            (df['chrom'] == chrom) & 
-            (df['pos'] >= start) & 
-            (df['pos'] <= end)
-        ].copy()
+        # 检查数据格式
+        # 新格式：chrom和pos为列，r2到r100为footprint分数列
+        if 'chrom' in df.columns and 'pos' in df.columns and 'r2' in df.columns:
+            # 新格式：宽格式数据
+            # 筛选指定区域的数据
+            region_data = df[
+                (df['chrom'] == chrom) & 
+                (df['pos'] >= start) & 
+                (df['pos'] <= end)
+            ].copy()
+        else:
+            # 旧格式：长格式数据（chrom, pos, radius, score）
+            # 筛选指定区域的数据
+            region_data = df[
+                (df['chrom'] == chrom) & 
+                (df['pos'] >= start) & 
+                (df['pos'] <= end)
+            ].copy()
         
         return region_data
     
@@ -80,13 +92,31 @@ class FootprintDataProcessor:
         # 初始化热图数据矩阵
         heatmap_data = np.zeros((len(radii), region_length))
         
-        # 填充数据
-        for _, row in fp_data.iterrows():
-            pos_idx = int(row['pos']) - start  # 转换为相对位置索引
-            radius_idx = int(row['radius']) - radius_range[0]  # 转换为半径索引
-            
-            if 0 <= pos_idx < region_length and 0 <= radius_idx < len(radii):
-                heatmap_data[radius_idx, pos_idx] = row['score']
+        # 检查数据格式并填充数据
+        if 'r2' in fp_data.columns:
+            # 新格式：宽格式数据，每个半径是一个列（r2, r3, ..., r100）
+            for _, row in fp_data.iterrows():
+                pos_idx = int(row['pos']) - start  # 转换为相对位置索引
+                
+                if 0 <= pos_idx < region_length:
+                    # 遍历所有半径列
+                    for radius in radii:
+                        col_name = f'r{radius}'
+                        if col_name in fp_data.columns:
+                            radius_idx = radius - radius_range[0]  # 转换为半径索引
+                            if 0 <= radius_idx < len(radii):
+                                score = row[col_name]
+                                # 处理可能的NaN值
+                                if pd.notna(score):
+                                    heatmap_data[radius_idx, pos_idx] = score
+        else:
+            # 旧格式：长格式数据（chrom, pos, radius, score）
+            for _, row in fp_data.iterrows():
+                pos_idx = int(row['pos']) - start  # 转换为相对位置索引
+                radius_idx = int(row['radius']) - radius_range[0]  # 转换为半径索引
+                
+                if 0 <= pos_idx < region_length and 0 <= radius_idx < len(radii):
+                    heatmap_data[radius_idx, pos_idx] = row['score']
         
         return heatmap_data, positions, radii
     
