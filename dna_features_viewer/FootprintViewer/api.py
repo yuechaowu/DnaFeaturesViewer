@@ -15,7 +15,8 @@ from .visualizer import FootprintVisualizer, TypeOnlyTranslator
 
 
 def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, start, end, 
-                               figsize=None, highlight_regions=None, output_file=None, genbank_file=None):
+                               figsize=None, highlight_regions=None, output_file=None, genbank_file=None,
+                               colorbar_vmin=None, colorbar_vmax=None):
     """
     绘制指定区域的基因注释和footprint分数热图
     
@@ -30,6 +31,8 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
     - highlight_regions: 高亮区域列表 [(start1, end1), (start2, end2), ...]
     - output_file: 输出文件路径
     - genbank_file: GenBank文件保存路径 (如果指定则不会删除该文件)
+    - colorbar_vmin: 颜色条最小值（默认None，表示自动取0）
+    - colorbar_vmax: 颜色条最大值（默认None，表示自动取数据上限/全局上限）
     
     返回:
     - fig: matplotlib图形对象
@@ -45,6 +48,11 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
     gb_file = gb_creator.create_from_region(genome_fasta, gff3_file, chrom, start, end, genbank_file)
     is_temp_file = genbank_file is None
     
+    # 参数校验：自定义颜色条范围
+    if (colorbar_vmin is not None) and (colorbar_vmax is not None) and (colorbar_vmin >= colorbar_vmax):
+        print("警告: colorbar_vmin >= colorbar_vmax，已自动调整为 vmin < vmax。")
+        colorbar_vmax = float(colorbar_vmin) + 1e-6
+
     # 加载footprint数据
     print("正在加载footprint分数数据...")
     fp_data = data_processor.load_footprint_scores(fp_score_file, chrom, start, end)
@@ -59,7 +67,9 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
         heatmap_data, positions, radii = data_processor.create_heatmap_data(fp_data, start, end)
         raw_max = np.max(heatmap_data) if np.max(heatmap_data) > 0 else 1.0
         max_score = min(raw_max, 5.0)  # 限制最大值不超过5
-        print(f"数据最大值: {raw_max:.3f}, colorbar最大值: {max_score:.3f}")
+        effective_vmin = 0.0 if colorbar_vmin is None else float(colorbar_vmin)
+        effective_vmax = max_score if colorbar_vmax is None else float(colorbar_vmax)
+        print(f"数据最大值: {raw_max:.3f}, colorbar范围: [{effective_vmin:.3f}, {effective_vmax:.3f}]")
     
     # 读取GenBank记录
     record = SeqIO.read(gb_file, "genbank")
@@ -142,7 +152,10 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
     
     # 对于单行布局，热图使用相对坐标（从0开始）
     heatmap_start = 0 if 'axes' not in locals() or len(axes) <= 2 else start
-    im = visualizer.plot_heatmap(ax2, heatmap_data, radii, region_len, max_score, heatmap_start)
+    im = visualizer.plot_heatmap(
+        ax2, heatmap_data, radii, region_len, max_score, heatmap_start,
+        vmin=colorbar_vmin, vmax=colorbar_vmax
+    )
     ax2.set_xlabel(f"{chrom} position (bp)")
     
     # 添加高亮区域
@@ -173,7 +186,8 @@ def plot_region_with_footprints(genome_fasta, gff3_file, fp_score_file, chrom, s
 
 
 def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, start, end,
-                                figsize=None, highlight_regions=None, output_file=None, genbank_file=None):
+                                figsize=None, highlight_regions=None, output_file=None, genbank_file=None,
+                                colorbar_vmin=None, colorbar_vmax=None):
     """
     比较多个组织的footprint分数
     
@@ -188,11 +202,18 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
     - highlight_regions: 高亮区域列表
     - output_file: 输出文件路径
     - genbank_file: GenBank文件保存路径 (如果指定则不会删除该文件)
+    - colorbar_vmin: 颜色条最小值（默认None，表示自动取0）
+    - colorbar_vmax: 颜色条最大值（默认None，表示自动取全局上限）
     
     返回:
     - fig: matplotlib图形对象
     """
     
+    # 参数校验：自定义颜色条范围
+    if (colorbar_vmin is not None) and (colorbar_vmax is not None) and (colorbar_vmin >= colorbar_vmax):
+        print("警告: colorbar_vmin >= colorbar_vmax，已自动调整为 vmin < vmax。")
+        colorbar_vmax = float(colorbar_vmin) + 1e-6
+
     # 初始化组件
     gb_creator = GenBankCreator()
     data_processor = FootprintDataProcessor()
@@ -301,13 +322,18 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
     # 计算全局最大值，限制不超过5
     raw_global_max = max(all_max_scores) if all_max_scores and max(all_max_scores) > 0 else 1.0
     global_max = min(raw_global_max, 5.0)
-    print(f"所有组织最大值: {raw_global_max:.3f}, colorbar最大值: {global_max:.3f}")
+    effective_vmin = 0.0 if colorbar_vmin is None else float(colorbar_vmin)
+    effective_vmax = global_max if colorbar_vmax is None else float(colorbar_vmax)
+    print(f"所有组织最大值: {raw_global_max:.3f}, colorbar范围: [{effective_vmin:.3f}, {effective_vmax:.3f}]")
     
     # 第二遍：绘制热图
     im = None
     for i, (tissue, heatmap_data, radii, _) in enumerate(tissue_data):
         ax = axes[i + base_idx]
-        im = visualizer.plot_heatmap(ax, heatmap_data, radii, region_len, global_max, start, title=f"{tissue}")
+        im = visualizer.plot_heatmap(
+            ax, heatmap_data, radii, region_len, global_max, start, title=f"{tissue}",
+            vmin=colorbar_vmin, vmax=colorbar_vmax
+        )
         
         # 与单组织风格一致：y轴仅显示数值含义，将组织名放在左侧标题位置
         ax.set_ylabel("FootPrint Size (bp)")

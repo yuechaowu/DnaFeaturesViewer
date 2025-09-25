@@ -421,7 +421,7 @@ class FootprintVisualizer:
                                 markersize=6,
                                 zorder=0)
     
-    def plot_heatmap(self, ax, heatmap_data, radii, seq_len, max_score, start_pos, title=""):
+    def plot_heatmap(self, ax, heatmap_data, radii, seq_len, max_score, start_pos, title="", vmin=None, vmax=None):
         """
         绘制footprint分数热图
         
@@ -438,6 +438,10 @@ class FootprintVisualizer:
         actual_start = start_pos
         actual_end = start_pos + seq_len
         
+        # 允许自定义色阶范围；默认与原行为一致
+        _vmin = 0 if vmin is None else vmin
+        _vmax = max_score if vmax is None else vmax
+
         im = ax.imshow(
             heatmap_data,
             aspect="auto",
@@ -445,7 +449,7 @@ class FootprintVisualizer:
             extent=[actual_start, actual_end, radii[0]-0.5, radii[-1]+0.5],
             interpolation="nearest",
             cmap=plt.cm.Blues,
-            vmin=0, vmax=max_score
+            vmin=_vmin, vmax=_vmax
         )
         
         ax.set_xlim(actual_start, actual_end)
