@@ -265,10 +265,11 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
                 axes = [axes]
             translator = TypeOnlyTranslator()
             graphic_record = translator.translate_record(record)
-            graphic_record.first_index = start
+            # 不设置first_index，使用相对坐标（从0开始）
             graphic_record.plot(ax=axes[0], with_ruler=False, draw_line=False, strand_in_label_threshold=4)
-            visualizer._add_intron_connections_simple(axes[0], record, start)
-            axes[0].set_xlim(start, end)
+            visualizer._add_intron_connections_simple(axes[0], record, 0)
+            # 设置x轴范围为相对坐标
+            axes[0].set_xlim(0, len(record.seq))
             axes[0].tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
             base_idx = 1
     else:
@@ -285,10 +286,11 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
             axes = [axes]
         translator = TypeOnlyTranslator()
         graphic_record = translator.translate_record(record)
-        graphic_record.first_index = start
+        # 不设置first_index，使用相对坐标（从0开始）
         graphic_record.plot(ax=axes[0], with_ruler=False, draw_line=False, strand_in_label_threshold=4)
-        visualizer._add_intron_connections_simple(axes[0], record, start)
-        axes[0].set_xlim(start, end)
+        visualizer._add_intron_connections_simple(axes[0], record, 0)
+        # 设置x轴范围为相对坐标
+        axes[0].set_xlim(0, len(record.seq))
         axes[0].tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
         base_idx = 1
     
@@ -328,10 +330,12 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
     
     # 第二遍：绘制热图
     im = None
+    # 对于单行布局，热图使用相对坐标（从0开始）
+    heatmap_start = 0 if len(transcript_rows) <= 1 else start
     for i, (tissue, heatmap_data, radii, _) in enumerate(tissue_data):
         ax = axes[i + base_idx]
         im = visualizer.plot_heatmap(
-            ax, heatmap_data, radii, region_len, global_max, start, title=f"{tissue}",
+            ax, heatmap_data, radii, region_len, global_max, heatmap_start, title=f"{tissue}",
             vmin=colorbar_vmin, vmax=colorbar_vmax
         )
         
@@ -347,7 +351,18 @@ def plot_multi_tissue_comparison(genome_fasta, gff3_file, fp_files_dict, chrom, 
             ax.set_xlabel(f"{chrom} position (bp)")
     
     # 添加高亮区域
-    visualizer.add_highlight_regions(axes, highlight_regions, start, region_len)
+    # 对于单行布局，需要调整高亮区域的坐标为相对坐标
+    if len(transcript_rows) <= 1 and highlight_regions:
+        # 转换高亮区域为相对坐标
+        adjusted_highlight_regions = []
+        for region_start, region_end in highlight_regions:
+            adjusted_start = max(0, region_start - start)
+            adjusted_end = min(region_len, region_end - start)
+            if adjusted_start < adjusted_end:
+                adjusted_highlight_regions.append((adjusted_start, adjusted_end))
+        visualizer.add_highlight_regions(axes, adjusted_highlight_regions, 0, region_len)
+    else:
+        visualizer.add_highlight_regions(axes, highlight_regions, start, region_len)
     
     # 添加颜色条（右上角横置）
     if im is not None:
